@@ -20,7 +20,6 @@ jobs:
       digest: ${{ steps.build.outputs.digest }}
 
     permissions:
-      # to upload SBOM
       id-token: write
       contents: write
       # to upload Docker image
@@ -59,5 +58,6 @@ jobs:
         with:
           file: "${{ inputs.docker-file }}"
           context: .
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

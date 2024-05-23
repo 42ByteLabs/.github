@@ -2,6 +2,11 @@ name: Conatiner Build and Release
 
 on:
   workflow_call:
+    inputs:
+      version:
+        description: "Semantic version of the image"
+        type: string
+        required: true
 
 env:
   REGISTRY: ghcr.io

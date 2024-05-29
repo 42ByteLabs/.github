@@ -22,6 +22,7 @@ jobs:
       contents: read
 
     strategy:
+      fail-fast: false
       matrix:
         rust-version: [ stable, beta, nightly ]
 

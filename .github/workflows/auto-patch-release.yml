@@ -1,0 +1,28 @@
+name: Auto Patch Release
+
+on:
+  workflow_call:
+    inputs:
+      mode:
+        description: "Auto-release mode"
+        required: false
+        type: string
+        default: minor
+
+jobs:
+  auto-release:
+    runs-on: ubuntu-latest
+
+    container:
+      image: ghcr.io/42bytelabs/patch-release-me:0.1.3
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v4
+
+      - name: "patch-release-me"
+        run: |
+          patch-release-me bump -m "${{ inputs.mode }}"

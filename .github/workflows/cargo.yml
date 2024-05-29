@@ -1,0 +1,72 @@
+name: Cargo - Build
+
+on:
+  workflow_call:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  cargo-build:
+    # https://github.com/42ByteLabs/.github/blob/main/.github/workflows/cargo-build.yml
+    uses: 42ByteLabs/.github/.github/workflows/cargo-build.yml@main
+    secrets: inherit
+
+  cargo-lint:
+    runs-on: ubuntu-latest
+    needs: [ cargo-build ]
+    permissions:
+      contents: read
+
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v4
+      - name: "Setup - Rust Toolchain"
+        uses: dtolnay/rust-toolchain@d8352f6b1d2e870bc5716e7a6d9b65c4cc244a1a
+        with:
+          components: clippy,rustfmt
+          toolchain: stable
+
+      - name: "Formatting Check"
+        run: |
+          cargo fmt --check
+
+      - name: "Running Clippy"
+        run: |
+          cargo clippy --all-targets
+
+  cargo-test:
+    runs-on: ubuntu-latest
+    needs: [ cargo-build ]
+    permissions:
+      contents: read
+
+    strategy:
+      matrix:
+        rust-version: [ stable, beta, nightly ]
+
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v4
+
+      - name: "Setup - Rust Toolchain"
+        uses: dtolnay/rust-toolchain@d8352f6b1d2e870bc5716e7a6d9b65c4cc244a1a
+        with:
+          toolchain: ${{ matrix.rust-version }}
+
+      - name: Restore cached Cargo 
+        id: cache-restore
+        if: steps.changes.outputs.src == 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo
+
+      - name: "Run Tests"
+        run: |
+          cargo test

@@ -32,7 +32,7 @@ jobs:
             src:
               - '**/Cargo.*'
               - 'rust-toolchain.toml'
-              - '**/*.rs'
+              - '*.rs'
               - '.github/workflows/*.yml
 
       - name: "Setup - Rust Toolchain"

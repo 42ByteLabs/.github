@@ -21,17 +21,31 @@ jobs:
     steps:
       - name: "Checkout"
         uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36
+        id: changes
+        with:
+          filters: |
+            src:
+              - '**/Cargo.*'
+              - 'rust-toolchain.toml'
+              - '*.rs'
+              - '.github/workflows/*.yml'
+
       - name: "Setup - Rust Toolchain"
         uses: dtolnay/rust-toolchain@d8352f6b1d2e870bc5716e7a6d9b65c4cc244a1a
+        if: steps.changes.outputs.src == 'true'
         with:
           components: clippy,rustfmt
           toolchain: stable
 
       - name: "Formatting Check"
+        if: steps.changes.outputs.src == 'true'
         run: |
           cargo fmt --check
 
       - name: "Running Clippy"
+        if: steps.changes.outputs.src == 'true'
         run: |
           cargo clippy --all-targets
 
@@ -49,8 +63,19 @@ jobs:
       - name: "Checkout"
         uses: actions/checkout@v4
 
+      - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36
+        id: changes
+        with:
+          filters: |
+            src:
+              - '**/Cargo.*'
+              - 'rust-toolchain.toml'
+              - '*.rs'
+              - '.github/workflows/*.yml'
+
       - name: "Setup - Rust Toolchain"
         uses: dtolnay/rust-toolchain@d8352f6b1d2e870bc5716e7a6d9b65c4cc244a1a
+        if: steps.changes.outputs.src == 'true'
         with:
           toolchain: ${{ matrix.rust-version }}
 
@@ -68,5 +93,6 @@ jobs:
           key: ${{ runner.os }}-cargo
 
       - name: "Run Tests"
+        if: steps.changes.outputs.src == 'true'
         run: |
           cargo test

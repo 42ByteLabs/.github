@@ -18,6 +18,7 @@ jobs:
 
     permissions:
       contents: write
+      pull-requests: write
 
     steps:
       - name: "Checkout"
@@ -26,3 +27,14 @@ jobs:
       - name: "patch-release-me"
         run: |
           patch-release-me bump -m "${{ inputs.mode }}"
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          title: "Chore - Auto Patch Update Release"
+          commit-message: "[chore]: Auto Patch Release"
+          body: |
+            This is automatically created as a chore to patch and update the release.
+          branch: "auto-patch-release"
+          labels: "version"
+          delete-branch: true

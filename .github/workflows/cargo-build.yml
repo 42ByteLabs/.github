@@ -2,6 +2,11 @@ name: Cargo - Build
 
 on:
   workflow_call:
+    inputs:
+      package:
+        description: "Cargo Package"
+        required: false
+        type: string
 
 env:
   CARGO_TERM_COLOR: always
@@ -20,12 +25,23 @@ jobs:
       - name: "Checkout"
         uses: actions/checkout@v4
 
+      - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36
+        id: changes
+        with:
+          filters: |
+            src:
+              - '**/Cargo.*'
+              - 'rust-toolchain.toml'
+              - '**/*.rs'
+              - '.github/workflows/*.yml
+
       - name: "Setup - Rust Toolchain"
         uses: dtolnay/rust-toolchain@d8352f6b1d2e870bc5716e7a6d9b65c4cc244a1a
+        if: steps.changes.outputs.src == 'true'
         with:
           toolchain: ${{ matrix.rust-version }}
 
-      - name: Restore cached Cargo 
+      - name: "Restore cached Cargo"
         id: cache-restore
         if: steps.changes.outputs.src == 'true'
         uses: actions/cache/restore@v4
@@ -39,6 +55,7 @@ jobs:
           key: ${{ runner.os }}-cargo
 
       - name: "Build"
+        if: steps.changes.outputs.src == 'true'
         run: |
           cargo build
 
@@ -54,62 +71,3 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: ${{ steps.cache-restore.outputs.cache-primary-key }}
-
-  cargo-lint:
-    runs-on: ubuntu-latest
-    needs: [ cargo-build ]
-    permissions:
-      contents: read
-
-    steps:
-      - name: "Checkout"
-        uses: actions/checkout@v4
-      - name: "Setup - Rust Toolchain"
-        uses: dtolnay/rust-toolchain@d8352f6b1d2e870bc5716e7a6d9b65c4cc244a1a
-        with:
-          components: clippy,rustfmt
-          toolchain: stable
-
-      - name: "Formatting Check"
-        run: |
-          cargo fmt --check
-
-      - name: "Running Clippy"
-        run: |
-          cargo clippy --all-targets
-
-  cargo-test:
-    runs-on: ubuntu-latest
-    needs: [ cargo-build ]
-    permissions:
-      contents: read
-
-    strategy:
-      matrix:
-        rust-version: [ stable, beta, nightly ]
-
-    steps:
-      - name: "Checkout"
-        uses: actions/checkout@v4
-
-      - name: "Setup - Rust Toolchain"
-        uses: dtolnay/rust-toolchain@d8352f6b1d2e870bc5716e7a6d9b65c4cc244a1a
-        with:
-          toolchain: ${{ matrix.rust-version }}
-
-      - name: Restore cached Cargo 
-        id: cache-restore
-        if: steps.changes.outputs.src == 'true'
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo
-
-      - name: "Run Tests"
-        run: |
-          cargo test

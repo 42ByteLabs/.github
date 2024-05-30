@@ -24,8 +24,7 @@ jobs:
       - name: "Patch Release Me"
         uses: 42ByteLabs/patch-release-me@v0.1.3
         with:
-          mode: patch
-          # mode: ${{ inputs.mode }}
+          mode: ${{ inputs.mode }}
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6

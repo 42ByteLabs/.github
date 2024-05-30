@@ -29,6 +29,7 @@ jobs:
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
         with:
+          token: ${{ github.token }}
           title: "Chore - Auto Patch Update Release"
           commit-message: "[chore]: Auto Patch Release"
           body: |

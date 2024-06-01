@@ -17,8 +17,7 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      version: ${{ steps.crates-check.outputs.version }}
-      outdated: ${{ steps.crates-check.outputs.outdated }}
+      release: ${{ steps.crates-check.outputs.release }}
 
     steps:
       - name: "Checkout"

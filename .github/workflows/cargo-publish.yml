@@ -32,7 +32,7 @@ jobs:
           CARGO_LOCATION="${{ inputs.cargo }}"
           CRATE_NAME="${{ inputs.crate }}"
           # TODO: Auto detect name
-          current_version=$(grep -oP '^version = "(.*)"$' $LOCATION | cut -d '"' -f 2)
+          current_version=$(grep -oP '^version = "(.*)"$' $CARGO_LOCATION | cut -d '"' -f 2)
           crates_remote=$(curl -s https://crates.io/api/v1/crates/$CRATE_NAME/versions | jq -r '.versions[0].num')
 
           echo "💻 Current version   :: $current_version"

@@ -1,0 +1,53 @@
+name: Cargo - Train
+
+on:
+  workflow_call:
+    inputs:
+      schedule:
+        description: "Train Release Schedule"
+        type: string
+        default: "1209600"  # 2 weeks
+      crate:
+        description: "Crate name"
+        type: string
+        required: true
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+
+    outputs:
+      version: ${{ steps.crates-check.outputs.version }}
+      outdated: ${{ steps.crates-check.outputs.outdated }}
+
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v4
+
+      - name: "Check crates.io"
+        id: crates-check
+        run: |
+          set -e
+
+          # TODO: Auto detect name
+          CRATE_NAME="${{ inputs.crate }}"
+
+          current_date=$(date +%s)
+          crates_remote=$(curl -s https://crates.io/api/v1/crates/$CRATE_NAME/versions | jq -r '.versions[0].created_at')
+          crates_date=$(date -d "${crates_remote}" +%s)
+
+          echo "⏲️  Current date   :: $(date -d @${current_date})"
+          echo "🦀  Crates.io date :: $(date -d @${crates_date})"
+
+          diff=$((current_date - crates_date))
+          secs="${{ inputs.schedule }}"
+          echo "🔍 Difference     :: ${diff} (seconds)"
+          
+          if [ $diff -gt secs ]; then
+            echo "🚀 The crate is outdated"
+            echo "release=true" >> $GITHUB_OUTPUT
+          else
+            echo "👍 The crate is up to date"
+            echo "release=false" >> $GITHUB_OUTPUT
+          fi
+

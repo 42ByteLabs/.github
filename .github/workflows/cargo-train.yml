@@ -11,6 +11,10 @@ on:
         description: "Mode"
         type: string
         default: "patch"
+      cargo:
+        description: "Cargo file path"
+        type: string
+        default: "Cargo.toml"
       crate:
         description: "Crate name"
         type: string
@@ -22,6 +26,7 @@ jobs:
 
     outputs:
       release: ${{ steps.crates-check.outputs.release }}
+      version: ${{ steps.crates-check.outputs.version }}
 
     steps:
       - name: "Checkout"
@@ -34,10 +39,13 @@ jobs:
 
           # TODO: Auto detect name
           CRATE_NAME="${{ inputs.crate }}"
+          CARGO_LOCATION="${{ inputs.cargo }}"
 
           current_date=$(date +%s)
           crates_remote=$(curl -s https://crates.io/api/v1/crates/$CRATE_NAME/versions | jq -r '.versions[0].created_at')
           crates_date=$(date -d "${crates_remote}" +%s)
+
+          current_version=$(grep -oP '^version = "(.*)"$' $CARGO_LOCATION | cut -d '"' -f 2)
 
           echo "⏲️  Current date   :: $(date -d @${current_date})"
           echo "🦀  Crates.io date :: $(date -d @${crates_date})"
@@ -53,6 +61,7 @@ jobs:
             echo "👍 The crate is up to date"
             echo "release=false" >> $GITHUB_OUTPUT
           fi
+          echo "version=$current_version" >> $GITHUB_OUTPUT
 
   release:
     runs-on: ubuntu-latest
@@ -79,7 +88,7 @@ jobs:
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ steps.get_workflow_token.outputs.token }}
-          title: "Chore: Train Release"
+          title: "Chore: Train Release - ${{ needs.train.outputs.version }}"
           commit-message: "[chore]: Auto Patch Release"
           body: |
             This is automatically created as a chore to patch and update the release.

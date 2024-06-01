@@ -51,7 +51,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ cargo-check ]
 
-    if: ${{ needs.cargo-check.outputs.outdated == 'true' }}"
+    if: ${{ needs.cargo-check.outputs.outdated == 'true' }}
 
     permissions:
       contents: write

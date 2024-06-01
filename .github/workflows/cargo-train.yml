@@ -46,7 +46,7 @@ jobs:
           secs="${{ inputs.schedule }}"
           echo "🔍 Difference     :: ${diff} (seconds)"
           
-          if [ $diff -gt secs ]; then
+          if [ $diff -gt $((secs)) ]; then
             echo "🚀 The crate is outdated"
             echo "release=true" >> $GITHUB_OUTPUT
           else

@@ -82,10 +82,10 @@ jobs:
           git config user.name github-actions
           git config user.email github-actions@github.com
 
-          git tag "v${{ inputs.version }}" --force
+          git tag "v${{ needs.cargo-check.outputs.version }}" --force
           git push origin ${{ github.ref_name }}
           git push origin --tags --force
 
           gh release create --latest --generate-notes \
-            --title "${{ inputs.version }}" \
-            "${{ inputs.version }}"
+            --title "v${{ needs.cargo-check.outputs.version }}" \
+            "v${{ needs.cargo-check.outputs.version }}"

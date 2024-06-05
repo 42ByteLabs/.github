@@ -95,7 +95,7 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo
+          key: ${{ runner.os }}-${{ matrix.rust-version }}-cargo
 
       - name: "Run Tests"
         if: steps.changes.outputs.src == 'true'

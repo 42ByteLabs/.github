@@ -2,6 +2,11 @@ name: Cargo - Build
 
 on:
   workflow_call:
+    inputs:
+      features:
+        description: "Cargo Features"
+        type: string
+        default: "default"
 
 env:
   CARGO_TERM_COLOR: always
@@ -95,6 +100,6 @@ jobs:
       - name: "Run Tests"
         if: steps.changes.outputs.src == 'true'
         run: |
-          cargo test --workspace
-          cargo test --workspace --examples
-          cargo test --workspace --bins
+          cargo test --workspace -F "${{ inputs.features }}"
+          cargo test --workspace --examples -F "${{ inputs.features }}"
+          cargo test --workspace --bins -F "${{ inputs.features }}"

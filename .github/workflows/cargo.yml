@@ -95,4 +95,6 @@ jobs:
       - name: "Run Tests"
         if: steps.changes.outputs.src == 'true'
         run: |
-          cargo test
+          cargo test --workspace
+          cargo test --workspace --examples
+          cargo test --workspace --bins

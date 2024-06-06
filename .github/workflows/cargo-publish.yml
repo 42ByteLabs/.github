@@ -11,6 +11,9 @@ on:
         description: "Crate name"
         type: string
         required: true
+      crates:
+        description: "Name of creates to publish in order"
+        type: string
 
 jobs:
   cargo-check:
@@ -72,8 +75,21 @@ jobs:
           
       - name: "Publish"
         run: |
+          set -e
           cargo login ${{ secrets.CRATES_TOKEN }}
-          cargo publish
+
+          INPUT="${{ inputs.crates }}"
+          if [ -z "$INPUT" ]; then
+              echo "Publishing create..."
+              cargo publish
+          else 
+              CRATES=',' read -r -a array <<< "$INPUT"
+              for element in "${CRATES[@]}"
+              do
+                  echo "Publishing crate '$element'"
+                  cargo publish -p "$element"
+              done
+          fi
 
       - name: "GitHub Release"
         env:

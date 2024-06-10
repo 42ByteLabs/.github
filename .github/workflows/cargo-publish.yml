@@ -81,13 +81,13 @@ jobs:
           INPUT="${{ inputs.crates }}"
           if [ -z "$INPUT" ]; then
             echo "🚀 Publishing create..."
-            cargo publish
+            cargo publish --allow-dirty
           else 
               IFS=',' read -r -a elements <<< "$INPUT"
               for element in "${elements[@]}"
               do
                 echo "🚀 Publishing crate '$element'"
-                cargo publish -p "$element"
+                cargo publish -p "$element" --allow-dirty
               done
           fi
 

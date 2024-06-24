@@ -6,7 +6,7 @@ on:
       cargo:
         description: "Cargo file"
         type: string
-        default: "Cargo.toml"
+        default: "./Cargo.toml"
 
 jobs:
   cargo-examples:
@@ -24,16 +24,14 @@ jobs:
       - name: "Run examples"
         run: |
           set -e
-
           CARGO_LOCATION="${{ inputs.cargo }}"
 
-          examples=$(cat Cargo.toml | tomlq -r '.example[].name')
-
+          examples=$(cat $CARGO_LOCATION | tomlq -r '.example[].name')
           for example in $examples; do
-              features=$(cat Cargo.toml | tomlq -r ".example[] | select(.name == \"$example\") | .\"required-features\" | join(\",\")")
+              echo "🏃 Running example: '$example'"
 
-              echo "🏃 Running example: $example"
-              echo "⚡ Features: $features"
+              features=$(cat $CARGO_LOCATION | tomlq -r ".example[] | select(.name == \"$example\") | .\"required-features\" | join(\",\")")
+              echo "⚡ Features: '$features'"
 
               cargo run --example "$example" --features "$features"
 

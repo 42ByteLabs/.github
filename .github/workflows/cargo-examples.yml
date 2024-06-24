@@ -1,0 +1,40 @@
+name: Cargo - Examples
+
+on:
+  workflow_call:
+    inputs:
+      cargo:
+        description: "Cargo file"
+        type: string
+        default: "Cargo.toml"
+
+jobs:
+  cargo-examples:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v4
+
+      - name: "Run examples"
+        run: |
+          set -e
+
+          CARGO_LOCATION="${{ inputs.cargo }}"
+
+          examples=$(cat Cargo.toml | tomlq -r '.example[].name')
+
+          for example in $examples; do
+              features=$(cat Cargo.toml | tomlq -r ".example[] | select(.name == \"$example\") | .\"required-features\" | join(\",\")")
+
+              echo "🏃 Running example: $example"
+              echo "⚡ Features: $features"
+
+              cargo run --example "$example" --features "$features"
+
+              echo "🎉 Completed running example: $example"
+              echo ""
+
+          done
+          
+          echo "🚀 Completed running all examples"

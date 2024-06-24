@@ -54,6 +54,12 @@ jobs:
         run: |
           cargo clippy --all-targets
 
+  cargo-examples:
+    # https://github.com/42ByteLabs/.github/blob/main/.github/workflows/cargo-examples.yml
+    uses: 42ByteLabs/.github/.github/workflows/cargo-examples.yml@main
+    secrets: inherit
+    needs: [ cargo-build ]
+
   cargo-test:
     runs-on: ubuntu-latest
     needs: [ cargo-build ]

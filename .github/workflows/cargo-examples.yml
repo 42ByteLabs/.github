@@ -16,15 +16,28 @@ jobs:
       - name: "Checkout"
         uses: actions/checkout@v4
 
-      - name: "Install tools"
-        run: |
-          set -e
-          pip install yq
-
       - name: "Run examples"
         run: |
           set -e
           CARGO_LOCATION="${{ inputs.cargo }}"
+
+          if [ ! -f $CARGO_LOCATION ]; then
+              echo "❌ $CARGO_LOCATION not found"
+              exit 1
+          fi
+          
+          if ! command -v tomlq &> /dev/null; then
+              echo "❌ tomlq not found.."
+              echo "🚀 Installing yq / tomlq"
+
+              pip install yq
+          fi
+          
+          present=$(cat Cargo.toml | tomlq -r '.example')
+          if [ "$present" == "null" ]; then
+              echo "❌ No examples found in Cargo.toml, skipping and exiting..."
+              exit 0
+          fi
 
           examples=$(cat $CARGO_LOCATION | tomlq -r '.example[].name')
           for example in $examples; do

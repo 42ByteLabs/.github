@@ -62,7 +62,20 @@ jobs:
       - name: "Build"
         if: steps.changes.outputs.src == 'true'
         run: |
-          cargo build
+          set -e
+
+          CARGO_FEATURES="${{ inputs.features }}"
+          
+          if [ -n "$CARGO_FEATURES" ]; then
+              echo "📦 Standard build with features: '$CARGO_FEATURES'"
+              cargo build --features "$CARGO_FEATURES"
+          else
+              echo "📦 Standard build (default)"
+              cargo build
+          fi
+          
+          echo "📦 Disable all features"
+          cargo build --no-default-features
 
       - name: Save Cargo / Rust Cache 
         id: cache-save

@@ -20,4 +20,4 @@ jobs:
         with:
           fail-on-severity: moderate
           fail-on-scopes: runtime
-          comment-summary-in-pr: 'always'
+          comment-summary-in-pr: 'on-failure'

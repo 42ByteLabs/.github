@@ -77,7 +77,7 @@ jobs:
             type=semver,pattern=v{{major}},value=${{ needs.set-version.outputs.version }}
 
       - name: Build Docker image
-        uses: docker/build-push-action@v6.7.0
+        uses: docker/build-push-action@v6.9.0
         id: build
         with:
           file: "${{ inputs.docker-file }}"

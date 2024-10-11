@@ -30,7 +30,7 @@ jobs:
               echo "❌ tomlq not found.."
               echo "🚀 Installing yq / tomlq"
 
-              pip install yq
+              brew install yq
           fi
           
           present=$(cat Cargo.toml | tomlq -r '.example')

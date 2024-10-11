@@ -26,24 +26,23 @@ jobs:
               exit 1
           fi
           
-          if ! command -v tomlq &> /dev/null; then
-              echo "❌ tomlq not found.."
-              echo "🚀 Installing yq / tomlq"
-
-              brew install yq
-          fi
+          YQ_VERSION=v4.2.0
+          YQ_BINARY=yq_linux_amd64
+          echo "🚀 Installing yq / tomlq ( $YQ_VERSION )"
+          wget https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/${YQ_BINARY}.tar.gz -O - |\
+            tar xz && mv ${YQ_BINARY} /usr/bin/yq
           
-          present=$(cat Cargo.toml | tomlq -r '.example')
+          present=$(cat Cargo.toml | yq -r '.example')
           if [ "$present" == "null" ]; then
               echo "❌ No examples found in Cargo.toml, skipping and exiting..."
               exit 0
           fi
 
-          examples=$(cat $CARGO_LOCATION | tomlq -r '.example[].name')
+          examples=$(cat $CARGO_LOCATION | yq -r '.example[].name')
           for example in $examples; do
               echo "🏃 Running example: '$example'"
 
-              features=$(cat $CARGO_LOCATION | tomlq -r ".example[] | select(.name == \"$example\") | .\"required-features\" | join(\",\")")
+              features=$(cat $CARGO_LOCATION | yq -r ".example[] | select(.name == \"$example\") | .\"required-features\" | join(\",\")")
               echo "⚡ Features: '$features'"
 
               cargo run --example "$example" --features "$features"

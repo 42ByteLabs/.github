@@ -28,7 +28,7 @@ jobs:
           if [ -z "$VERSION" ]; then
             echo "version=$VERSION" >> $GITHUB_OUTPUT
           elif [[ -f .release.yml ]]; then
-            pip install yq
+            pip install --break-system-packages yq
             current_version=$(cat .release.yml | yq -r ".version")
             echo "version=$current_version" >> $GITHUB_OUTPUT
           else

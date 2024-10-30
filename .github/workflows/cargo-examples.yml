@@ -27,7 +27,7 @@ jobs:
           fi
 
           echo "🚀 Installing yq / tomlq"
-          pip install --break-system-packages yq
+          pip install yq
           
           present=$(cat Cargo.toml | tomlq -r '.example')
           if [ "$present" == "null" ]; then

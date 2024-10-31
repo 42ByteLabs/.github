@@ -3,6 +3,10 @@ name: Conatiner Build and Release
 on:
   workflow_call:
     inputs:
+      container-name:
+        description: "Container image name"
+        type: string
+        default: "${{ github.repository }}"
       docker-file:
         description: "Docker File location"
         type: string
@@ -13,7 +17,6 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   set-version:
@@ -73,7 +76,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5.5.1
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ inputs.container-name }}
           tags: |
             # latest / main
             type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
@@ -82,7 +85,7 @@ jobs:
             # SemVer, major only
             type=semver,pattern=v{{major}},value=${{ needs.set-version.outputs.version }}
 
-      - name: Build Docker image
+      - name: Build Docker ${{ inputs.container-name }}
         uses: docker/build-push-action@v6.9.0
         id: build
         with:

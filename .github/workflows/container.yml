@@ -3,6 +3,10 @@ name: Conatiner Build and Release
 on:
   workflow_call:
     inputs:
+      docker-file:
+        description: "Docker File location"
+        type: string
+        default: "./Dockerfile"
       version:
         description: "Semantic version of the image"
         type: string

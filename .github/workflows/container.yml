@@ -29,7 +29,7 @@ jobs:
           set -e
 
           if [[ -f .release.yml ]]; then
-            pip install --break-system-packages yq
+            pip install yq
             current_version=$(yq -r ".version" .release.yml)
             echo "Current Version :: $current_version"  
 

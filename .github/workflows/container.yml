@@ -78,6 +78,7 @@ jobs:
             type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
             # SemVer
             type=semver,pattern={{version}},value=${{ needs.set-version.outputs.version }}
+            type=semver,pattern=v{{version}},value=${{ needs.set-version.outputs.version }}
             type=semver,pattern=v{{major}},value=${{ needs.set-version.outputs.version }}
             type=semver,pattern=v{{major}}.{{minor}},value=${{ needs.set-version.outputs.version }}
 

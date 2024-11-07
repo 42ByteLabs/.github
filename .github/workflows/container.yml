@@ -11,9 +11,6 @@ on:
         description: "Docker File location"
         type: string
         default: "./Dockerfile"
-      version:
-        description: "Semantic version of the image"
-        type: string
 
 env:
   REGISTRY: ghcr.io
@@ -30,13 +27,12 @@ jobs:
         id: set-version
         run: |
           set -e
-          VERSION="${{ inputs.version }}"
 
-          if [ -z "$VERSION" ]; then
-            echo "version=$VERSION" >> $GITHUB_OUTPUT
-          elif [[ -f .release.yml ]]; then
+          if [[ -f .release.yml ]]; then
             pip install --break-system-packages yq
-            current_version=$(cat .release.yml | yq -r ".version")
+            current_version=$(yq -r ".version" .release.yml)
+            echo "Current Version :: $current_version"  
+
             echo "version=$current_version" >> $GITHUB_OUTPUT
           else
             echo "Failed to find version..."
@@ -74,7 +70,7 @@ jobs:
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@v5.5.1
+        uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ inputs.container-name }}
           tags: |
@@ -82,8 +78,8 @@ jobs:
             type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
             # SemVer
             type=semver,pattern={{version}},value=${{ needs.set-version.outputs.version }}
-            # SemVer, major only
             type=semver,pattern=v{{major}},value=${{ needs.set-version.outputs.version }}
+            type=semver,pattern=v{{major}}.{{minor}},value=${{ needs.set-version.outputs.version }}
 
       - name: Build Docker ${{ inputs.container-name }}
         uses: docker/build-push-action@v6.9.0

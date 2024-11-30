@@ -8,6 +8,10 @@ on:
         description: "Cargo Features"
         type: string
         default: "default"
+      examples:
+        description: "Run Cargo Examples"
+        type: string
+        default: "true"
 
 env:
   CARGO_TERM_COLOR: always
@@ -58,6 +62,7 @@ jobs:
   cargo-examples:
     # https://github.com/42ByteLabs/.github/blob/main/.github/workflows/cargo-examples.yml
     uses: 42ByteLabs/.github/.github/workflows/cargo-examples.yml@main
+    if: ${{ inputs.examples == 'true' }}
     secrets: inherit
     needs: [ cargo-build ]
 

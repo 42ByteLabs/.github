@@ -49,6 +49,7 @@ jobs:
         uses: dtolnay/rust-toolchain@315e265cd78dad1e1dcf3a5074f6d6c47029d5aa
         if: steps.changes.outputs.src == 'true'
         with:
+          components: clippy,rustfmt
           toolchain: ${{ matrix.rust-version }}
 
       - name: "Restore cached Cargo"
@@ -81,6 +82,23 @@ jobs:
           
           echo "📦 Disable all features"
           cargo build --no-default-features
+
+      - name: "Run Tests"
+        if: steps.changes.outputs.src == 'true'
+        run: |
+          cargo test --workspace -F "${{ inputs.features }}"
+          cargo test --workspace --examples -F "${{ inputs.features }}"
+          cargo test --workspace --bins -F "${{ inputs.features }}"
+
+      - name: "Formatting Check"
+        if: steps.changes.outputs.src == 'true'
+        run: |
+          cargo fmt --check
+
+      - name: "Running Clippy"
+        if: steps.changes.outputs.src == 'true'
+        run: |
+          cargo clippy --all-targets
 
       - name: Save Cargo / Rust Cache 
         id: cache-save

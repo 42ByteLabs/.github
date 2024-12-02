@@ -23,7 +23,7 @@ jobs:
       contents: read
 
     concurrency:
-      group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+      group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}-${{ matrix.rust-version }}
       cancel-in-progress: true
 
     strategy:

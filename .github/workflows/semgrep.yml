@@ -13,6 +13,10 @@ jobs:
     name: semgrep/ci
     runs-on: ubuntu-latest
 
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+      cancel-in-progress: true
+
     container:
       image: semgrep/semgrep
 

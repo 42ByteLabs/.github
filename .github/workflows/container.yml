@@ -17,7 +17,7 @@ env:
 
 jobs:
   get-project:
-    uses: 42ByteLabs/.github/.github/workflows/projects.yml@main
+    uses: 42ByteLabs/.github/.github/workflows/project.yml@main
     secrets: inherit
 
   build-publish-image:

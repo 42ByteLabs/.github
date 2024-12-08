@@ -89,6 +89,7 @@ jobs:
         with:
           name: sarif
           path: ${{ steps.scan.outputs.sarif }}
+          category: /grype-${{ inputs.container-name }}
 
       - name: Push Container ${{ inputs.container-name }}
         uses: docker/build-push-action@v6.10.0

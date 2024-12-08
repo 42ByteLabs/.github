@@ -71,14 +71,15 @@ jobs:
           context: .
           load: true
           push: false
-          tags: localbuild/testimage:latest
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
 
       # Scan the image for vulnerabilities and if high severity vulnerabilities are found, fail the build
       - name: Run the Anchore / Grype scan action
         uses: anchore/scan-action@f2ba85e044c8f5e5014c9a539328a9c78d3bfa49 # v5.2.1
         id: scan
         with:
-          image: localbuild/testimage:latest
+          image: ${{ inputs.container-name }}:latest
           only-fixed: true
           severity-cutoff: high
 

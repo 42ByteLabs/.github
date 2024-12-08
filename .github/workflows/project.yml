@@ -2,6 +2,13 @@ name: Get Project Information
 
 on:
   workflow_call:
+    outputs:
+      version:
+        description: "The current version of the project"
+        value: ${{ jobs.get-info.outputs.version }}
+      release:
+        description: "Whether a new release is needed"
+        value: ${{ jobs.get-info.outputs.release }}
 
 jobs:
   get-info:

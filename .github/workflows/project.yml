@@ -19,6 +19,8 @@ jobs:
 
       - name: "Set Project Information"
         id: get-info
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -e
 

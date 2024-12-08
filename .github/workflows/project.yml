@@ -1,0 +1,60 @@
+name: Get Project Information
+
+on:
+  workflow_call:
+
+jobs:
+  get-info:
+    runs-on: ubuntu-latest
+    
+    outputs:
+      # Version
+      version: ${{ steps.set-version.outputs.version }}
+      # If the version is outdated or not based on releases
+      outdated: ${{ steps.crates-check.outputs.outdated }}
+      
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v4
+
+      - name: "Set Project Information"
+        id: get-info
+        run: |
+          set -e
+
+          if [[ -f .release.yml ]]; then
+            pip install yq
+            current_version=$(yq -r ".version" .release.yml)
+            echo "Current Version :: $current_version"  
+            echo "version=$current_version" >> $GITHUB_OUTPUT
+          else
+            echo "Failed to find version..."
+            exit 1
+          fi
+
+          # Get the latest release version from GitHub
+          latest_version=$(gh release list -L 1 --json name -q '.[0].name' --repo "$GITHUB_REPOSITORY")
+          # If it starts with "v", remove it
+          if [[ $latest_version == v* ]]; then
+            latest_version=${latest_version:1}
+          fi
+
+          echo "Latest Version :: $latest_version"
+
+          # Check if the version is outdated
+          if [[ $latest_version != $current_version ]]; then
+            echo "outdated=true" >> $GITHUB_OUTPUT
+          else
+            echo "outdated=false" >> $GITHUB_OUTPUT
+          fi
+
+
+      # If Debugging is enabled, print the output
+      - name: "Print Debug Information"
+        if: runner.debug
+        run: |
+          echo "Version: ${{ steps.get-info.outputs.version }}"
+          echo "Outdated: ${{ steps.get-info.outputs.outdated }}"
+
+
+

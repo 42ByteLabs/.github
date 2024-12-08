@@ -16,32 +16,15 @@ env:
   REGISTRY: ghcr.io
 
 jobs:
-  set-version:
-    runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.set-version.outputs.version }}
-    steps:
-      - name: "Checkout"
-        uses: actions/checkout@v4
-      - name: "Get and Set version"
-        id: set-version
-        run: |
-          set -e
-
-          if [[ -f .release.yml ]]; then
-            pip install yq
-            current_version=$(yq -r ".version" .release.yml)
-            echo "Current Version :: $current_version"  
-
-            echo "version=$current_version" >> $GITHUB_OUTPUT
-          else
-            echo "Failed to find version..."
-            exit 1
-          fi
+  get-project:
+    uses: 42ByteLabs/.github/.github/workflows/projects.yml
+    secrets: inherit
 
   build-publish-image:
     runs-on: ubuntu-latest
-    needs: [ set-version ]
+    needs: [ get-project ]
+
+    if: ${{ needs.get-project.outputs.outdated == 'true' }}
 
     outputs:
       digest: ${{ steps.build.outputs.digest }}
@@ -82,7 +65,33 @@ jobs:
             type=semver,pattern=v{{major}},value=${{ needs.set-version.outputs.version }}
             type=semver,pattern=v{{major}}.{{minor}},value=${{ needs.set-version.outputs.version }}
 
-      - name: Build Docker ${{ inputs.container-name }}
+      - name: Build initial ${{ inputs.container-name }} image
+        uses: docker/build-push-action@v6.10.0
+        with: 
+          file: "${{ inputs.docker-file }}"
+          context: .
+          load: true
+          push: false
+          tags: localbuild/testimage:latest
+
+      # Scan the image for vulnerabilities and if high severity vulnerabilities are found, fail the build
+      - name: Run the Anchore / Grype scan action
+        uses: anchore/scan-action@f2ba85e044c8f5e5014c9a539328a9c78d3bfa49 # v5.2.1
+        id: scan
+        with:
+          image: localbuild/testimage:latest
+          only-fixed: true
+          severity-cutoff: high
+
+      # Upload the SARIF artifact to the GitHub Advanced Security tab
+      - name: Upload SARIF artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sarif
+          path: ${{ steps.scan.outputs.sarif }}
+
+      - name: Push Container ${{ inputs.container-name }}
         uses: docker/build-push-action@v6.10.0
         id: build
         with:

@@ -8,10 +8,8 @@ jobs:
     runs-on: ubuntu-latest
     
     outputs:
-      # Version
       version: ${{ steps.get-info.outputs.version }}
-      # If the version is outdated or not based on releases
-      outdated: ${{ steps.get-info.outputs.outdated }}
+      release: ${{ steps.get-info.outputs.release }}
       
     steps:
       - name: "Checkout"
@@ -50,13 +48,13 @@ jobs:
           # Check if the version is outdated
           if [[ "$latest_version" == "" ]]; then
             echo "✨ No releases found... Lets get that first version out!"
-            echo "outdated=true" >> $GITHUB_OUTPUT
+            echo "release=true" >> $GITHUB_OUTPUT
           elif [[ "$latest_version" != "$current_version" ]]; then
             echo "🚀 The repository is outdated... Let's update it!"
-            echo "outdated=true" >> $GITHUB_OUTPUT
+            echo "release=true" >> $GITHUB_OUTPUT
           else
             echo "🍹 Repository is up to date. Lets sit back and relax..."
-            echo "outdated=false" >> $GITHUB_OUTPUT
+            echo "release=false" >> $GITHUB_OUTPUT
           fi
 
 
@@ -65,7 +63,7 @@ jobs:
         if: runner.debug
         run: |
           echo "Version: ${{ steps.get-info.outputs.version }}"
-          echo "Outdated: ${{ steps.get-info.outputs.outdated }}"
+          echo "Ready for release: ${{ steps.get-info.outputs.release }}"
 
 
 

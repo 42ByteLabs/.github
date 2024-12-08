@@ -51,7 +51,7 @@ jobs:
           if [[ "$latest_version" == "" ]]; then
             echo "✨ No releases found... Lets get that first version out!"
             echo "outdated=true" >> $GITHUB_OUTPUT
-          if [[ "$latest_version" != "$current_version" ]]; then
+          elif [[ "$latest_version" != "$current_version" ]]; then
             echo "🚀 The repository is outdated... Let's update it!"
             echo "outdated=true" >> $GITHUB_OUTPUT
           else

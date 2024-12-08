@@ -25,9 +25,13 @@ jobs:
           set -e
 
           if [[ -f .release.yml ]]; then
-            pip install yq
+            pip install yq > /dev/null
             current_version=$(yq -r ".version" .release.yml)
-            echo "Current Version :: $current_version"  
+            echo "💻 Current Version :: $current_version"  
+            echo "version=$current_version" >> $GITHUB_OUTPUT
+          elif [[ -f Cargo.toml ]]; then
+            current_version=$(grep "version =" Cargo.toml | cut -d '"' -f 2)
+            echo "💻 Current Version :: $current_version"
             echo "version=$current_version" >> $GITHUB_OUTPUT
           else
             echo "Failed to find version..."
@@ -44,9 +48,14 @@ jobs:
           echo "Latest Version :: $latest_version"
 
           # Check if the version is outdated
-          if [[ $latest_version != $current_version ]]; then
+          if [[ "$latest_version" == "" ]]; then
+            echo "✨ No releases found... Lets get that first version out!"
+            echo "outdated=true" >> $GITHUB_OUTPUT
+          if [[ "$latest_version" != "$current_version" ]]; then
+            echo "🚀 The repository is outdated... Let's update it!"
             echo "outdated=true" >> $GITHUB_OUTPUT
           else
+            echo "🍹 Repository is up to date. Lets sit back and relax..."
             echo "outdated=false" >> $GITHUB_OUTPUT
           fi
 

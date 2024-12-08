@@ -9,9 +9,9 @@ jobs:
     
     outputs:
       # Version
-      version: ${{ steps.set-version.outputs.version }}
+      version: ${{ steps.get-info.outputs.version }}
       # If the version is outdated or not based on releases
-      outdated: ${{ steps.crates-check.outputs.outdated }}
+      outdated: ${{ steps.get-info.outputs.outdated }}
       
     steps:
       - name: "Checkout"

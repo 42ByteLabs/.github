@@ -85,12 +85,12 @@ jobs:
           # severity-cutoff: high
 
       # Upload the SARIF artifact to the GitHub Advanced Security tab
-      - name: Upload SARIF artifact
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
-        with:
-          sarif_file: "${{ steps.scan.outputs.sarif }}"
-          category: "/grype-${{ inputs.container-name }}"
+      # - name: Upload SARIF artifact
+      #   uses: github/codeql-action/upload-sarif@v3
+      #   if: always()
+      #   with:
+      #     sarif_file: "${{ steps.scan.outputs.sarif }}"
+      #     category: "/grype-${{ inputs.container-name }}"
 
       - name: Push Container ${{ inputs.container-name }}
         uses: docker/build-push-action@v6.10.0

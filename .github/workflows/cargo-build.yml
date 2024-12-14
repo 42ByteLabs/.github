@@ -74,10 +74,10 @@ jobs:
           
           if [ -n "$CARGO_FEATURES" ]; then
               echo "📦 Standard build with features: '$CARGO_FEATURES'"
-              cargo build --features "$CARGO_FEATURES"
+              cargo build --workspace --features "$CARGO_FEATURES"
           else
               echo "📦 Standard build (default)"
-              cargo build
+              cargo build --workspace
           fi
           
           echo "📦 Disable all features"

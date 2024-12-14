@@ -102,7 +102,7 @@ jobs:
 
       - name: Save Cargo / Rust Cache 
         id: cache-save
-        if: steps.changes.outputs.src == 'true'
+        if: ${{ steps.changes.outputs.src == 'true' && github.event_name == 'push' }}
         uses: actions/cache/save@v4
         with:
           path: |

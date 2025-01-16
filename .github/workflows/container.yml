@@ -21,7 +21,7 @@ env:
 
 jobs:
   build-publish-image:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, "Linux"]
 
     outputs:
       digest: ${{ steps.build.outputs.digest }}

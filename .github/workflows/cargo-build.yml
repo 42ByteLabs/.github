@@ -97,7 +97,7 @@ jobs:
           cargo fmt --check
 
       - name: "Running Clippy"
-        if: steps.changes.outputs.src == 'true' && matrix.rust-version == 'stable'
+        if: matrix.rust-version == 'stable'
         continue-on-error: true
         run: |
           cargo install clippy-sarif sarif-fmt
@@ -107,6 +107,7 @@ jobs:
 
       - name: Upload analysis results to GitHub
         uses: github/codeql-action/upload-sarif@v3
+        if: matrix.rust-version == 'stable'
         with:
           sarif_file: rust-clippy-results.sarif
           wait-for-processing: true

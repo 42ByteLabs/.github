@@ -100,7 +100,12 @@ jobs:
         if: matrix.rust-version == 'stable'
         continue-on-error: true
         run: |
-          cargo install --force clippy-sarif sarif-fmt
+          set -e
+          if ! command -v clippy-sarif &> /dev/null; then
+            cargo install \
+              clippy-sarif sarif-fmt
+          fi
+
           cargo clippy \
             --all-features --all-targets \
             --message-format=json | clippy-sarif | tee rust-clippy-results.sarif | sarif-fmt

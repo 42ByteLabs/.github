@@ -1,0 +1,92 @@
+name: Cargo - Build
+
+on:
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      features:
+        description: "Crate Features"
+        required: false
+        type: string
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  cargo-build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}-${{ matrix.rust-version }}
+      cancel-in-progress: true
+
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36
+        id: changes
+        with:
+          filters: |
+            src:
+              - '**/Cargo.*'
+              - 'rust-toolchain.toml'
+              - '**/*.rs'
+              - '.github/workflows/*.yml'
+
+      - name: "Setup - Rust Toolchain"
+        uses: dtolnay/rust-toolchain@a54c7afa936fefeb4456b2dd8068152669aa8203
+        if: steps.changes.outputs.src == 'true'
+        with:
+          toolchain: stable
+
+      - name: "Restore cached Cargo"
+        id: cache-restore
+        if: steps.changes.outputs.src == 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-${{ matrix.rust-version }}-cargo
+
+      - name: "Install GeekORM"
+        if: steps.changes.outputs.src == 'true'
+        run: cargo install geekorm-cli
+
+      - name: "Build and Test Migrations"
+        if: steps.changes.outputs.src == 'true'
+        run: |
+          set -e
+
+          CARGO_FEATURES="${{ inputs.features }}"
+
+          if [ -n "$CARGO_FEATURES" ]; then
+              echo "📦 Standard build with features: '$CARGO_FEATURES'"
+              cargo build --features "$CARGO_FEATURES"
+          else
+              echo "📦 Standard build (default)"
+              cargo build
+          fi
+
+          geekorm-cli test
+          geekorm-cli display
+
+      - name: Save Cargo / Rust Cache 
+        id: cache-save
+        if: ${{ steps.changes.outputs.src == 'true' && github.event_name == 'push' }}
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ steps.cache-restore.outputs.cache-primary-key }}

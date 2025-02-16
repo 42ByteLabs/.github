@@ -1,4 +1,4 @@
-name: Cargo - Build
+name: GeekORM
 
 on:
   workflow_dispatch:
@@ -13,7 +13,7 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  cargo-build:
+  migrations:
     runs-on: ubuntu-latest
     permissions:
       contents: read

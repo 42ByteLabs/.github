@@ -1,0 +1,13 @@
+name: Security
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  semgrep:
+    uses: 42ByteLabs/.github/.github/workflows/semgrep.yml@main
+    secrets: inherit
+    permissions:
+      contents: read
+      security-events: write

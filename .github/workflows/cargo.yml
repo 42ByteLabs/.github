@@ -7,7 +7,6 @@ on:
       features:
         description: "Cargo Features"
         type: string
-        default: "default"
       examples:
         description: "Run Cargo Examples"
         type: string

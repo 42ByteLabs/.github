@@ -33,6 +33,7 @@ jobs:
       packages: write
       # to upload to GitHub Advanced Security
       security-events: write
+      attestations: write
 
     steps:
       - name: Checkout repository

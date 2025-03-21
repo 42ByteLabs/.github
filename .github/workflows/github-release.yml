@@ -2,6 +2,10 @@ name: "GitHub - Release"
 
 on:
   workflow_call:
+    inputs:
+      version:
+        description: "Version"
+        type: string
 
 jobs:
   publish:
@@ -22,10 +26,10 @@ jobs:
           git config user.name github-actions
           git config user.email github-actions@github.com
 
-          git tag "${{ needs.cargo-check.outputs.version }}" --force
+          git tag "${{ inputs.version }}" --force
           git push origin ${{ github.ref_name }}
           git push origin --tags --force
 
           gh release create --latest --generate-notes \
-            --title "v${{ needs.cargo-check.outputs.version }}" \
+            --title "v${{ inputs.version }}" \
             "${{ needs.cargo-check.outputs.version }}"

@@ -66,6 +66,10 @@ jobs:
             target/
           key: ${{ runner.os }}-${{ matrix.rust-version }}-cargo
 
+      - name: "Formatting Check"
+        if: steps.changes.outputs.src == 'true'
+        run: cargo fmt --check
+
       - name: "Build"
         if: steps.changes.outputs.src == 'true'
         run: |
@@ -90,11 +94,6 @@ jobs:
           cargo test --workspace -F "${{ inputs.features }}"
           cargo test --workspace --examples -F "${{ inputs.features }}"
           cargo test --workspace --bins -F "${{ inputs.features }}"
-
-      - name: "Formatting Check"
-        if: steps.changes.outputs.src == 'true'
-        run: |
-          cargo fmt --check
 
       - name: "Running Clippy"
         if: matrix.rust-version == 'stable'

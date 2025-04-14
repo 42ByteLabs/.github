@@ -59,12 +59,12 @@ jobs:
         if: steps.changes.outputs.src == 'true'
         run: cargo install geekorm-cli
 
-      - name: "Build and Test Migrations"
+      - name: "Build"
         if: steps.changes.outputs.src == 'true'
+        env:
+          CARGO_FEATURES: ${{ inputs.features }}
         run: |
           set -e
-
-          CARGO_FEATURES="${{ inputs.features }}"
 
           if [ -n "$CARGO_FEATURES" ]; then
               echo "📦 Standard build with features: '$CARGO_FEATURES'"
@@ -73,6 +73,12 @@ jobs:
               echo "📦 Standard build (default)"
               cargo build
           fi
+      - name: "GeekORM Migrations"
+        if: steps.changes.outputs.src == 'true'
+        env:
+          CARGO_FEATURES: ${{ inputs.features }}
+        run: |
+          set -e
 
           geekorm-cli test
           geekorm-cli display

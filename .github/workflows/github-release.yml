@@ -20,16 +20,17 @@ jobs:
       - name: "GitHub Release"
         env:
           GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
         run: |
           set -e
 
           git config user.name github-actions
           git config user.email github-actions@github.com
 
-          git tag "${{ inputs.version }}" --force
-          git push origin ${{ github.ref_name }}
+          git tag "${VERSION}" --force
+          git push origin "${{ github.ref_name }}"
           git push origin --tags --force
 
           gh release create --latest --generate-notes \
-            --title "v${{ inputs.version }}" \
+            --title "v${VERSION}" \
             "${{ needs.cargo-check.outputs.version }}"

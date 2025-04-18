@@ -18,6 +18,8 @@ on:
 jobs:
   cargo-check:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     outputs:
       version: ${{ steps.crates-check.outputs.version }}
@@ -29,11 +31,12 @@ jobs:
 
       - name: "Check crates.io"
         id: crates-check
+        env:
+          CRATE_NAME: "${{ inputs.crate }}"
+          CARGO_LOCATION: "${{ inputs.cargo }}"
         run: |
           set -e
 
-          CARGO_LOCATION="${{ inputs.cargo }}"
-          CRATE_NAME="${{ inputs.crate }}"
           # TODO: Auto detect name
           current_version=$(grep -oP '^version = "(.*)"$' $CARGO_LOCATION | cut -d '"' -f 2)
           crates_remote=$(curl -s https://crates.io/api/v1/crates/$CRATE_NAME/versions | jq -r '.versions[0].num')
@@ -53,9 +56,7 @@ jobs:
   cargo-publish:
     runs-on: ubuntu-latest
     needs: [ cargo-check ]
-
     if: ${{ needs.cargo-check.outputs.outdated == 'true' }}
-
     permissions:
       contents: write
 
@@ -74,16 +75,18 @@ jobs:
           cargo test
           
       - name: "Publish"
+        env:
+          CARGO_TOKEN: "${{ secrets.CRATES_TOKEN }}"
+          CRATES: "${{ inputs.crates }}"
         run: |
           set -e
-          cargo login ${{ secrets.CRATES_TOKEN }}
+          cargo login 
 
-          INPUT="${{ inputs.crates }}"
-          if [ -z "$INPUT" ]; then
+          if [ -z "$CRATES" ]; then
             echo "🚀 Publishing create..."
             cargo publish --allow-dirty
           else 
-              IFS=',' read -r -a elements <<< "$INPUT"
+              IFS=',' read -r -a elements <<< "$CRATES"
               for element in "${elements[@]}"
               do
                 echo "🚀 Publishing crate '$element'"
@@ -99,7 +102,7 @@ jobs:
           git config user.email github-actions@github.com
 
           git tag "${{ needs.cargo-check.outputs.version }}" --force
-          git push origin ${{ github.ref_name }}
+          git push origin "${{ github.ref_name }}"
           git push origin --tags --force
 
           gh release create --latest --generate-notes \

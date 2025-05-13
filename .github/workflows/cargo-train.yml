@@ -23,6 +23,8 @@ on:
 jobs:
   train:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     outputs:
       release: ${{ steps.crates-check.outputs.release }}
@@ -34,13 +36,11 @@ jobs:
 
       - name: "Check crates.io"
         id: crates-check
+        env:
+          CRATE_NAME: ${{ inputs.crate }}
+          CARGO_LOCATION: ${{ inputs.cargo }}
         run: |
           set -e
-
-          # TODO: Auto detect name
-          CRATE_NAME="${{ inputs.crate }}"
-          CARGO_LOCATION="${{ inputs.cargo }}"
-
           current_date=$(date +%s)
           crates_remote=$(curl -s https://crates.io/api/v1/crates/$CRATE_NAME/versions | jq -r '.versions[0].created_at')
           crates_date=$(date -d "${crates_remote}" +%s)
@@ -67,6 +67,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ train ]
     if: ${{ needs.train.outputs.release == 'true' }}
+    permissions:
+      contents: write
     
     steps:
       - name: "Checkout"
@@ -74,7 +76,7 @@ jobs:
 
       - name: Get Token
         id: get_workflow_token
-        uses: peter-murray/workflow-application-token-action@v4
+        uses: peter-murray/workflow-application-token-action@d17e3a9a36850ea89f35db16c1067dd2b68ee343    # v4.0.1
         with:
           application_id: ${{ secrets.BYTELABS_APP_ID }}
           application_private_key: ${{ secrets.BYTELABS_APP_KEY }}
@@ -85,7 +87,7 @@ jobs:
           mode: ${{ inputs.mode }}
 
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e    # v7.0.8
         with:
           token: ${{ steps.get_workflow_token.outputs.token }}
           title: "Chore: Train Release - ${{ needs.train.outputs.version }}"

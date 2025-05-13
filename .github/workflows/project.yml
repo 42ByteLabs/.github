@@ -68,9 +68,12 @@ jobs:
       # If Debugging is enabled, print the output
       - name: "Print Debug Information"
         if: runner.debug
+        env:
+          VERSION: ${{ steps.get-info.outputs.version }}
+          RELEASE: ${{ steps.get-info.outputs.release }}
         run: |
-          echo "Version: ${{ steps.get-info.outputs.version }}"
-          echo "Ready for release: ${{ steps.get-info.outputs.release }}"
+          echo "Version: ${VERSION}"
+          echo "Ready for release: ${RELEASE}"
 
 
 

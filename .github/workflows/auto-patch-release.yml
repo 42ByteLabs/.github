@@ -12,6 +12,8 @@ on:
 jobs:
   auto-release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: "Checkout"
@@ -19,7 +21,7 @@ jobs:
 
       - name: Get Token
         id: get_workflow_token
-        uses: peter-murray/workflow-application-token-action@v4
+        uses: peter-murray/workflow-application-token-action@d17e3a9a36850ea89f35db16c1067dd2b68ee343    # v4.0.1
         with:
           application_id: ${{ secrets.BYTELABS_APP_ID }}
           application_private_key: ${{ secrets.BYTELABS_APP_KEY }}
@@ -30,7 +32,7 @@ jobs:
           mode: ${{ inputs.mode }}
 
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e    # v7.0.8
         with:
           token: ${{ steps.get_workflow_token.outputs.token }}
           title: "Chore - Auto Patch Update Release"

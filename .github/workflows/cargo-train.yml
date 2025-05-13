@@ -39,6 +39,7 @@ jobs:
         env:
           CRATE_NAME: ${{ inputs.crate }}
           CARGO_LOCATION: ${{ inputs.cargo }}
+          SCHEDULE: ${{ inputs.schedule }}
         run: |
           set -e
           current_date=$(date +%s)
@@ -51,7 +52,7 @@ jobs:
           echo "🦀  Crates.io date :: $(date -d @${crates_date})"
 
           diff=$((current_date - crates_date))
-          secs="${{ inputs.schedule }}"
+          secs="${SCHEDULE}"
           echo "🔍 Difference     :: ${diff} (seconds)"
           
           if [ $diff -gt $((secs)) ]; then

@@ -21,6 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      actions: read
       security-events: write
 
     concurrency:
@@ -72,14 +73,13 @@ jobs:
 
       - name: "Build"
         if: steps.changes.outputs.src == 'true'
+        env:
+          CARGO_FEATURES: ${{ inputs.features }}
         run: |
           set -e
-
-          CARGO_FEATURES="${{ inputs.features }}"
-          
           if [ -n "$CARGO_FEATURES" ]; then
-              echo "📦 Standard build with features: '$CARGO_FEATURES'"
-              cargo build --workspace --features "$CARGO_FEATURES"
+              echo "📦 Standard build with features: '${CARGO_FEATURES}'"
+              cargo build --workspace --features "${CARGO_FEATURES}"
           else
               echo "📦 Standard build (default)"
               cargo build --workspace
@@ -90,10 +90,12 @@ jobs:
 
       - name: "Run Tests"
         if: steps.changes.outputs.src == 'true'
+        env:
+          CARGO_FEATURES: ${{ inputs.features }}
         run: |
-          cargo test --workspace -F "${{ inputs.features }}"
-          cargo test --workspace --examples -F "${{ inputs.features }}"
-          cargo test --workspace --bins -F "${{ inputs.features }}"
+          cargo test --workspace -F "${CARGO_FEATURES}"
+          cargo test --workspace --examples -F "${CARGO_FEATURES}"
+          cargo test --workspace --bins -F "${CARGO_FEATURES}"
 
       - name: "Running Clippy"
         if: matrix.rust-version == 'stable'

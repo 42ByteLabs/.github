@@ -11,15 +11,18 @@ on:
 jobs:
   cargo-examples:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: "Checkout"
         uses: actions/checkout@v4
 
       - name: "Run examples"
+        env:
+          CARGO_LOCATION: ${{ inputs.cargo }}
         run: |
           set -e
-          CARGO_LOCATION="${{ inputs.cargo }}"
 
           if [ ! -f $CARGO_LOCATION ]; then
               echo "❌ $CARGO_LOCATION not found"

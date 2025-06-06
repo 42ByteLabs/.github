@@ -1,0 +1,63 @@
+name: Cargo - Publish Binaries
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: "Version"
+        type: string
+        required: true
+      crate:
+        description: "Crate name"
+        type: string
+        required: true
+
+jobs:
+  cargo-bin:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            arch: x64
+          - os: macos-latest
+            arch: arm64
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v4
+
+      - name: "Setup - Rust Toolchain"
+        uses: dtolnay/rust-toolchain@4305c38b25d97ef35a8ad1f985ccf2d2242004f2   # stable
+        with:
+          toolchain: stable
+
+      - name: "Build and Publish Binaries"
+        id: cargo-bin
+        env:
+          VERSION: ${{ inputs.version }}
+          CRATE: ${{ inputs.crate }}
+          OS: ${{ runner.os }}
+          ARCH: ${{ runner.arch }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -e
+          BINARY_NAME=$(echo "${CRATE}-${OS}-${ARCH}" | tr '[:upper:]' '[:lower:]')
+          echo "[+] Name :: $BINARY_NAME"
+
+          cargo build --release -p "${CRATE}"
+          mv "target/release/${CRATE}" "${BINARY_NAME}"
+          
+          echo "[+] Uploading to GitHub Release :: $VERSION"
+          gh release upload --clobber "$VERSION" "${BINARY_NAME}"
+
+          echo "binary-name=${BINARY_NAME}" >> $GITHUB_OUTPUT
+
+      - name: "Create Attestations on the Binaries"
+        uses: actions/attest-build-provenance@db473fddc028af60658334401dc6fa3ffd8669fd    # v2.3.0
+        with:
+          subject-path: ${{ steps.cargo-bin.outputs.binary-name }}

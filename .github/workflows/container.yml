@@ -38,7 +38,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           submodules: true
 
@@ -49,7 +49,7 @@ jobs:
         uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392    # v3.6.0
 
       - name: Log in to the Container registry
-        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772    # v3.4.0
+        uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1    # v3.5.0
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -57,7 +57,7 @@ jobs:
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804    # v5.7.0
+        uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f    # v5.8.0
         with:
           images: ${{ env.REGISTRY }}/${{ inputs.container-name }}
           tags: |
@@ -88,7 +88,7 @@ jobs:
 
       # Scan the image for vulnerabilities and if high severity vulnerabilities are found, fail the build
       - name: Run the Anchore / Grype scan action
-        uses: anchore/scan-action@df395807f4554463d4455b8047cf58e37b6acaae # v6.5.0
+        uses: anchore/scan-action@1638637db639e0ade3258b51db49a9a137574c3e # v6.5.1
         id: scan
         with:
           image: ${{ inputs.container-name }}:${{ steps.build.outputs.digest }}

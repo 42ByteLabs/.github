@@ -57,7 +57,14 @@ jobs:
 
       - name: "Install GeekORM"
         if: steps.changes.outputs.src == 'true'
-        run: cargo install geekorm-cli
+        run: |
+          set -e
+          if ! command -v <the_command> >/dev/null 2>&1; then
+            echo "[+] Installing GeekORM CLI"
+            cargo install geekorm-cli
+          else
+            echo "[+] GeekORM CLI already installed..."
+          fi
 
       - name: "Build"
         if: steps.changes.outputs.src == 'true'

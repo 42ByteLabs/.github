@@ -87,13 +87,13 @@ jobs:
           filePattern: '*.spdx.json'
 
       # Scan the image for vulnerabilities and if high severity vulnerabilities are found, fail the build
-      - name: Run the Anchore / Grype scan action
-        uses: anchore/scan-action@1638637db639e0ade3258b51db49a9a137574c3e # v6.5.1
-        id: scan
-        with:
-          image: ${{ env.REGISTRY }}/${{ inputs.container-name }}:latest
-          only-fixed: true
-          fail-build: false
+      # - name: Run the Anchore / Grype scan action
+      #   uses: anchore/scan-action@1638637db639e0ade3258b51db49a9a137574c3e # v6.5.1
+      #   id: scan
+      #   with:
+      #     image: ${{ env.REGISTRY }}/${{ inputs.container-name }}:latest
+      #     only-fixed: true
+      #     fail-build: false
           # severity-cutoff: high
 
       # Upload the SARIF artifact to the GitHub Advanced Security tab

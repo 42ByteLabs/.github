@@ -27,7 +27,7 @@ jobs:
 
     steps:
       - name: "Checkout"
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: "Check crates.io"
         id: crates-check
@@ -62,7 +62,7 @@ jobs:
 
     steps:
       - name: "Checkout"
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: "Setup - Rust Toolchain"
         uses: dtolnay/rust-toolchain@nightly

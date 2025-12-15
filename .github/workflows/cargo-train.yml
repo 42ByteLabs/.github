@@ -83,12 +83,12 @@ jobs:
           application_private_key: ${{ secrets.BYTELABS_APP_KEY }}
 
       - name: "Patch Release Me"
-        uses: 42ByteLabs/patch-release-me@0.6.3
+        uses: 42ByteLabs/patch-release-me@0.6.4
         with:
           mode: ${{ inputs.mode }}
 
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@84ae59a2cdc2258d6fa0732dd66352dddae2a412    # v7.0.9
+        uses: peter-evans/create-pull-request@98357b18bf14b5342f975ff684046ec3b2a07725    # v8.0.0
         with:
           token: ${{ steps.get_workflow_token.outputs.token }}
           title: "Chore: Train Release - ${{ needs.train.outputs.version }}"

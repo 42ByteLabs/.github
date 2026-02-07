@@ -83,13 +83,25 @@ jobs:
 
           if [ -z "$CRATES" ]; then
             echo "🚀 Publishing create..."
-            cargo publish --allow-dirty
+            cargo publish --allow-dirty || {
+              if [[ $? -eq 0 ]] || cargo search $(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].name') --limit 1 | grep -q "$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')"; then
+                echo "📦 Crate already published, skipping..."
+              else
+                exit 1
+              fi
+            }
           else 
               IFS=',' read -r -a elements <<< "$CRATES"
               for element in "${elements[@]}"
               do
                 echo "🚀 Publishing crate '$element'"
-                cargo publish -p "$element" --allow-dirty
+                cargo publish -p "$element" --allow-dirty || {
+                  if [[ $? -eq 0 ]] || cargo search "$element" --limit 1 | grep -q "$(cargo metadata --no-deps --format-version 1 | jq -r ".packages[] | select(.name == \"$element\") | .version")"; then
+                    echo "📦 Crate '$element' already published, skipping..."
+                  else
+                    exit 1
+                  fi
+                }
               done
           fi
 

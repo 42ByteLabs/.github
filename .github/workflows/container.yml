@@ -44,13 +44,13 @@ jobs:
           submodules: true
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435    #v3.11.1
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f    #v3.12.0
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130    # v3.7.0
 
       - name: Log in to the Container registry
-        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef    # v3.6.0
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9    # v3.7.0
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -82,7 +82,7 @@ jobs:
 
       # Upload Software Bill of Materials (SBOM) to GitHub
       - name: Upload SBOM
-        uses: advanced-security/spdx-dependency-submission-action@5530bab9ee4bbe66420ce8280624036c77f89746  # v0.1.1
+        uses: advanced-security/spdx-dependency-submission-action@f957edbb35161c1f9e33f61026fc86a671c58cae  # v0.1.2
         with:
           filePath: '.'
           filePattern: '*.spdx.json'
@@ -117,7 +117,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Attest image
-        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a    # v3.0.0
+        uses: actions/attest-build-provenance@96278af6caaf10aea03fd8d33a09a777ca52d62f    # v3.2.0
         with:
           subject-name: ${{ env.REGISTRY }}/${{ inputs.container-name }}
           subject-digest: ${{ steps.build.outputs.digest }}

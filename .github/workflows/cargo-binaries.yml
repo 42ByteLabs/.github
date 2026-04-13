@@ -4,24 +4,45 @@ on:
   workflow_call:
     inputs:
       version:
-        description: "Version"
+        description: "Version / Release tag to publish binaries to"
         type: string
         required: true
       crate:
-        description: "Crate name"
+        description: "Crate name (binary name)"
         type: string
         required: true
+      # Operating Systems
+      linux-gnu:
+        description: "Build for Linux GNU (Debian/Ubuntu)"
+        type: boolean
+        default: true
+      linux-musl:
+        description: "Build for Linux MUSL (Alpine/Static)"
+        type: boolean
+        default: false
+      macos-arm:
+        description: "Build for macOS ARM64"
+        type: boolean
+        default: true
+      windows:
+        description: "Build for Windows x64"
+        type: boolean
+        default: true
+      # Additional options
+      features:
+        description: "Cargo features to enable"
+        type: string
+        default: ""
+      rust-toolchain:
+        description: "Rust toolchain version"
+        type: string
+        default: "stable"
 
 jobs:
-  cargo-bin:
-    strategy:
-      matrix:
-        include:
-          - os: ubuntu-latest
-            arch: x64
-          - os: macos-latest
-            arch: arm64
-    runs-on: ${{ matrix.os }}
+  # Linux GNU (Debian/Ubuntu) - x86_64
+  linux-gnu:
+    if: ${{ inputs.linux-gnu }}
+    runs-on: ubuntu-latest
     permissions:
       contents: write
       id-token: write
@@ -29,35 +50,216 @@ jobs:
 
     steps:
       - name: "Checkout"
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: "Setup - Rust Toolchain"
-        uses: dtolnay/rust-toolchain@4305c38b25d97ef35a8ad1f985ccf2d2242004f2   # stable
+        uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
+          toolchain: ${{ inputs.rust-toolchain }}
+          targets: x86_64-unknown-linux-gnu
 
-      - name: "Build and Publish Binaries"
-        id: cargo-bin
+      - name: "Build Binary"
+        id: build
         env:
-          VERSION: ${{ inputs.version }}
           CRATE: ${{ inputs.crate }}
-          OS: ${{ runner.os }}
-          ARCH: ${{ runner.arch }}
-          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+          FEATURES: ${{ inputs.features }}
         run: |
           set -e
-          BINARY_NAME=$(echo "${CRATE}-${OS}-${ARCH}" | tr '[:upper:]' '[:lower:]')
-          echo "[+] Name :: $BINARY_NAME"
+          BINARY_NAME="${CRATE}-${VERSION}-linux-gnu-x86_64"
+          echo "[+] Building :: $BINARY_NAME"
 
-          cargo build --release -p "${CRATE}"
+          if [ -n "$FEATURES" ]; then
+            cargo build --release -p "${CRATE}" --features "${FEATURES}"
+          else
+            cargo build --release -p "${CRATE}"
+          fi
+
           mv "target/release/${CRATE}" "${BINARY_NAME}"
-          
-          echo "[+] Uploading to GitHub Release :: $VERSION"
-          gh release upload --clobber "$VERSION" "${BINARY_NAME}"
+          chmod +x "${BINARY_NAME}"
 
           echo "binary-name=${BINARY_NAME}" >> $GITHUB_OUTPUT
 
-      - name: "Create Attestations on the Binaries"
-        uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32    # v4.1.0
+      - name: "Upload to GitHub Release"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+          BINARY_NAME: ${{ steps.build.outputs.binary-name }}
+        run: |
+          echo "[+] Uploading to GitHub Release :: $VERSION"
+          gh release upload --clobber "$VERSION" "${BINARY_NAME}"
+
+      - name: "Create Attestations"
+        uses: actions/attest-build-provenance@v2
         with:
-          subject-path: ${{ steps.cargo-bin.outputs.binary-name }}
+          subject-path: ${{ steps.build.outputs.binary-name }}
+
+  # Linux MUSL (Static binary - works on Alpine, Arch, etc.)
+  linux-musl:
+    if: ${{ inputs.linux-musl }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v4
+
+      - name: "Setup - Rust Toolchain"
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ inputs.rust-toolchain }}
+          targets: x86_64-unknown-linux-musl
+
+      - name: "Install MUSL tools"
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y musl-tools
+
+      - name: "Build Binary"
+        id: build
+        env:
+          CRATE: ${{ inputs.crate }}
+          VERSION: ${{ inputs.version }}
+          FEATURES: ${{ inputs.features }}
+        run: |
+          set -e
+          BINARY_NAME="${CRATE}-${VERSION}-linux-musl-x86_64"
+          echo "[+] Building :: $BINARY_NAME"
+
+          if [ -n "$FEATURES" ]; then
+            cargo build --release -p "${CRATE}" --target x86_64-unknown-linux-musl --features "${FEATURES}"
+          else
+            cargo build --release -p "${CRATE}" --target x86_64-unknown-linux-musl
+          fi
+
+          mv "target/x86_64-unknown-linux-musl/release/${CRATE}" "${BINARY_NAME}"
+          chmod +x "${BINARY_NAME}"
+
+          echo "binary-name=${BINARY_NAME}" >> $GITHUB_OUTPUT
+
+      - name: "Upload to GitHub Release"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+          BINARY_NAME: ${{ steps.build.outputs.binary-name }}
+        run: |
+          echo "[+] Uploading to GitHub Release :: $VERSION"
+          gh release upload --clobber "$VERSION" "${BINARY_NAME}"
+
+      - name: "Create Attestations"
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: ${{ steps.build.outputs.binary-name }}
+
+  # macOS ARM64 (Apple Silicon)
+  macos-arm:
+    if: ${{ inputs.macos-arm }}
+    runs-on: macos-latest
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v4
+
+      - name: "Setup - Rust Toolchain"
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ inputs.rust-toolchain }}
+          targets: aarch64-apple-darwin
+
+      - name: "Build Binary"
+        id: build
+        env:
+          CRATE: ${{ inputs.crate }}
+          VERSION: ${{ inputs.version }}
+          FEATURES: ${{ inputs.features }}
+        run: |
+          set -e
+          BINARY_NAME="${CRATE}-${VERSION}-macos-arm64"
+          echo "[+] Building :: $BINARY_NAME"
+
+          if [ -n "$FEATURES" ]; then
+            cargo build --release -p "${CRATE}" --target aarch64-apple-darwin --features "${FEATURES}"
+          else
+            cargo build --release -p "${CRATE}" --target aarch64-apple-darwin
+          fi
+
+          mv "target/aarch64-apple-darwin/release/${CRATE}" "${BINARY_NAME}"
+          chmod +x "${BINARY_NAME}"
+
+          echo "binary-name=${BINARY_NAME}" >> $GITHUB_OUTPUT
+
+      - name: "Upload to GitHub Release"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+          BINARY_NAME: ${{ steps.build.outputs.binary-name }}
+        run: |
+          echo "[+] Uploading to GitHub Release :: $VERSION"
+          gh release upload --clobber "$VERSION" "${BINARY_NAME}"
+
+      - name: "Create Attestations"
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: ${{ steps.build.outputs.binary-name }}
+
+  # Windows x64
+  windows:
+    if: ${{ inputs.windows }}
+    runs-on: windows-latest
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v4
+
+      - name: "Setup - Rust Toolchain"
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ inputs.rust-toolchain }}
+          targets: x86_64-pc-windows-msvc
+
+      - name: "Build Binary"
+        id: build
+        env:
+          CRATE: ${{ inputs.crate }}
+          VERSION: ${{ inputs.version }}
+          FEATURES: ${{ inputs.features }}
+        shell: pwsh
+        run: |
+          $BINARY_NAME = "$env:CRATE-$env:VERSION-windows-x86_64.exe"
+          Write-Host "[+] Building :: $BINARY_NAME"
+
+          if ($env:FEATURES) {
+            cargo build --release -p $env:CRATE --target x86_64-pc-windows-msvc --features $env:FEATURES
+          } else {
+            cargo build --release -p $env:CRATE --target x86_64-pc-windows-msvc
+          }
+
+          Move-Item "target/x86_64-pc-windows-msvc/release/$env:CRATE.exe" $BINARY_NAME
+
+          "binary-name=$BINARY_NAME" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: "Upload to GitHub Release"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+          BINARY_NAME: ${{ steps.build.outputs.binary-name }}
+        shell: pwsh
+        run: |
+          Write-Host "[+] Uploading to GitHub Release :: $env:VERSION"
+          gh release upload --clobber $env:VERSION $env:BINARY_NAME
+
+      - name: "Create Attestations"
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: ${{ steps.build.outputs.binary-name }}

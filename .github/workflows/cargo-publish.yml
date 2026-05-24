@@ -25,8 +25,8 @@ jobs:
       - name: "Checkout"
         uses: actions/checkout@v6
 
-      - name: "Cargo Build"
-        uses: 42bytelabs/actions/cargo/publish@0.1.0
+      - name: "Cargo Publish"
+        uses: 42bytelabs/actions/cargo/publish@0.1.1
         with:
           crates: ${{ inputs.crates }}
           cargo-token: "${{ secrets.CRATES_TOKEN }}"

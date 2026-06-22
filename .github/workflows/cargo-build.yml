@@ -35,7 +35,7 @@ jobs:
 
     steps:
       - name: "Checkout"
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d
         id: changes
@@ -48,7 +48,7 @@ jobs:
               - '.github/workflows/*.yml'
 
       - name: "Setup - Rust Toolchain"
-        uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
+        uses: dtolnay/rust-toolchain@67ef31d5b988238dd797d409d6f9574278e20537
         if: steps.changes.outputs.src == 'true'
         with:
           components: clippy,rustfmt

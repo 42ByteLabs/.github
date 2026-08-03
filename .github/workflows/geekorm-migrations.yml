@@ -24,9 +24,9 @@ jobs:
 
     steps:
       - name: "Checkout"
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
-      - uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d
+      - uses: dorny/paths-filter@7b450fff21473bca461d4b92ce414b9d0420d706
         id: changes
         with:
           filters: |
@@ -37,7 +37,7 @@ jobs:
               - '.github/workflows/*.yml'
 
       - name: "Setup - Rust Toolchain"
-        uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
+        uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c
         if: steps.changes.outputs.src == 'true'
         with:
           toolchain: stable
@@ -45,7 +45,7 @@ jobs:
       - name: "Restore cached Cargo"
         id: cache-restore
         if: steps.changes.outputs.src == 'true'
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@v6
         with:
           path: |
             ~/.cargo/bin/
@@ -93,7 +93,7 @@ jobs:
       - name: Save Cargo / Rust Cache 
         id: cache-save
         if: ${{ steps.changes.outputs.src == 'true' && github.event_name == 'push' }}
-        uses: actions/cache/save@v5
+        uses: actions/cache/save@v6
         with:
           path: |
             ~/.cargo/bin/
